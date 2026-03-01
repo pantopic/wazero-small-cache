@@ -32,6 +32,9 @@ func testLocalPut(k, v uint64) {
 //export testLocalGet
 func testLocalGet(k uint64) uint64 {
 	b := testLocalCache1.Get(binary.LittleEndian.AppendUint64([]byte{}, k))
+	if len(b) != 8 {
+		return 0
+	}
 	return binary.LittleEndian.Uint64(b)
 }
 
@@ -51,6 +54,9 @@ func testLocalPut2(k, v uint64) {
 //export testLocalGet2
 func testLocalGet2(k uint64) uint64 {
 	b := testLocalCache2.Get(binary.LittleEndian.AppendUint64([]byte{}, k))
+	if len(b) != 8 {
+		return 0
+	}
 	return binary.LittleEndian.Uint64(b)
 }
 

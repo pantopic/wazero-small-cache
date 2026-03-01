@@ -77,12 +77,16 @@ func TestModule(t *testing.T) {
 		}
 	})
 	t.Run(`del`, func(t *testing.T) {
-		stack, err := mod2.ExportedFunction(`testLocalDel`).Call(ctx, uint64(1))
+		_, err := mod2.ExportedFunction(`testLocalDel`).Call(ctx, uint64(1))
 		if err != nil {
 			t.Fatalf("%v", err)
 		}
-		if stack[0] != uint64(2) {
-			t.Fatalf("expected %d, got %d", 2, stack[0])
+		stack, err := mod2.ExportedFunction(`testLocalGet`).Call(ctx, uint64(1))
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		if stack[0] != uint64(0) {
+			t.Fatalf("expected %d, got %d", 0, stack[0])
 		}
 	})
 
