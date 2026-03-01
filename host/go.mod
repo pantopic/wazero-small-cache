@@ -1,0 +1,10 @@
+module github.com/pantopic/wazero-small-cache/host
+
+go 1.25.7
+
+require (
+	github.com/puzpuzpuz/xsync/v4 v4.4.0
+	github.com/tetratelabs/wazero v1.11.0
+)
+
+require golang.org/x/sys v0.38.0 // indirect
