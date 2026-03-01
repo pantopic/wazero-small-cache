@@ -6,9 +6,9 @@ import (
 	"log"
 	"sync"
 
-	"github.com/puzpuzpuz/xsync/v4"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
+	"github.com/tidwall/btree"
 )
 
 // Name is the name of this host module.
@@ -52,7 +52,7 @@ func (h *hostModule) Name() string {
 
 func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
 	dst = context.WithValue(dst, ctxKeyMeta, get[*meta](src, ctxKeyMeta))
-	dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*xsync.Map[string, []byte]))
+	dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
 	return dst
 }
 
@@ -65,34 +65,53 @@ func (h *hostModule) Register(ctx context.Context, r wazero.Runtime) (err error)
 		builder = builder.NewFunctionBuilder().WithGoModuleFunction(api.GoModuleFunc(fn), nil, nil).Export(name)
 	}
 	for name, fn := range map[string]any{
-		"__small_cache_put": func(m *xsync.Map[string, []byte], k string, v []byte) {
-			m.Store(k, v)
+		"__small_cache_put": func(m *btree.Map[string, []byte], k string, v []byte) {
+			m.Set(k, v)
 		},
-		"__small_cache_get": func(m *xsync.Map[string, []byte], k string) (v []byte) {
-			v, _ = m.Load(k)
+		"__small_cache_get": func(m *btree.Map[string, []byte], k string) (v []byte) {
+			v, _ = m.Load(k, v)
 			return
 		},
-		"__small_cache_del": func(m *xsync.Map[string, []byte], k string) {
+		"__small_cache_del": func(m *btree.Map[string, []byte], k string) {
 			m.Delete(k)
+		},
+		"__small_cache_min": func(m *btree.Map[string, []byte]) (k string) {
+			k, _, _ = m.Min()
+			return
 		},
 	} {
 		switch fn := fn.(type) {
-		case func(m *xsync.Map[string, []byte], k string, v []byte):
+		case func(m *btree.Map[string, []byte], k string, v []byte):
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
 				fn(h.getMap(ctx, mod, meta), getKey(mod, meta), getVal(mod, meta))
 			})
-		case func(m *xsync.Map[string, []byte], k string) (v []byte):
+		case func(m *btree.Map[string, []byte], k string) (v []byte):
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
 				b := fn(h.getMap(ctx, mod, meta), getKey(mod, meta))
 				copy(valBuf(mod, meta)[:len(b)], b)
 				writeUint32(mod, meta.ptrValLen, uint32(len(b)))
 			})
-		case func(m *xsync.Map[string, []byte], k string):
+		case func(m *btree.Map[string, []byte], k string):
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
 				fn(h.getMap(ctx, mod, meta), getKey(mod, meta))
+			})
+		case func(m *btree.Map[string, []byte]) string:
+			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
+				meta := get[*meta](ctx, ctxKeyMeta)
+				k := fn(h.getMap(ctx, mod, meta))
+				if len(k) == 0 {
+					writeUint32(mod, meta.ptrKeyLen, 0)
+					return
+				}
+				b, err := base64.URLEncoding.DecodeString(k)
+				if err != nil {
+					panic("Unable to decode key in min: " + k)
+				}
+				copy(keyBuf(mod, meta)[:len(b)], b)
+				writeUint32(mod, meta.ptrKeyLen, uint32(len(b)))
 			})
 		default:
 			log.Panicf("Method signature implementation missing: %#v", fn)
@@ -124,16 +143,16 @@ func (h *hostModule) InitContext(ctx context.Context, m api.Module) (context.Con
 	return context.WithValue(ctx, ctxKeyMeta, meta), nil
 }
 
-func (h *hostModule) getMap(ctx context.Context, mod api.Module, meta *meta) *xsync.Map[string, []byte] {
+func (h *hostModule) getMap(ctx context.Context, mod api.Module, meta *meta) *btree.Map[string, []byte] {
 	id := readUint64(mod, meta.ptrID)
-	m := get[map[uint64]*xsync.Map[string, []byte]](ctx, ctxKeyLocal)
+	m := get[map[uint64]*btree.Map[string, []byte]](ctx, ctxKeyLocal)
 	h.RLock()
 	_, ok := m[id]
 	h.RUnlock()
 	if !ok {
 		h.Lock()
 		if _, ok := m[id]; !ok {
-			m[id] = xsync.NewMap[string, []byte]()
+			m[id] = &btree.Map[string, []byte]{}
 		}
 		h.Unlock()
 	}
@@ -152,6 +171,10 @@ func getVal(mod api.Module, meta *meta) []byte {
 
 func valBuf(m api.Module, meta *meta) []byte {
 	return read(m, meta.ptrVal, 0, meta.ptrValCap)
+}
+
+func keyBuf(m api.Module, meta *meta) []byte {
+	return read(m, meta.ptrKey, 0, meta.ptrKeyCap)
 }
 
 func get[T any](ctx context.Context, key string) T {

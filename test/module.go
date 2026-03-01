@@ -43,6 +43,12 @@ func testLocalDel(k uint64) {
 	testLocalCache1.Del(binary.LittleEndian.AppendUint64([]byte{}, k))
 }
 
+//export testLocalMin
+func testLocalMin() uint64 {
+	b := testLocalCache1.Min()
+	return binary.LittleEndian.Uint64(b)
+}
+
 //export testLocalPut2
 func testLocalPut2(k, v uint64) {
 	testLocalCache2.Put(
@@ -65,10 +71,8 @@ func testLocalDel2(k uint64) {
 	testLocalCache2.Del(binary.LittleEndian.AppendUint64([]byte{}, k))
 }
 
-// Fix for lint rule `unusedfunc`
-var _ = testLocalPut
-var _ = testLocalGet
-var _ = testLocalDel
-var _ = testLocalPut2
-var _ = testLocalGet2
-var _ = testLocalDel2
+//export testLocalMin2
+func testLocalMin2() uint64 {
+	b := testLocalCache2.Min()
+	return binary.LittleEndian.Uint64(b)
+}

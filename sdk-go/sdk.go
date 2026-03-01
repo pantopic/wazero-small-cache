@@ -31,3 +31,9 @@ func (c *Local) Del(k []byte) {
 	keyLen = uint32(len(k))
 	del()
 }
+
+func (c *Local) Min() (k []byte) {
+	id = c.id
+	min()
+	return key[:keyLen]
+}

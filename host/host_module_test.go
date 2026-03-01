@@ -89,6 +89,41 @@ func TestModule(t *testing.T) {
 			t.Fatalf("expected %d, got %d", 0, stack[0])
 		}
 	})
+	t.Run(`min`, func(t *testing.T) {
+		_, err := mod1.ExportedFunction(`testLocalPut2`).Call(ctx, uint64(10), uint64(11))
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		stack, err := mod2.ExportedFunction(`testLocalMin2`).Call(ctx)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		if stack[0] != uint64(1) {
+			t.Fatalf("expected %d, got %d", 1, stack[0])
+		}
+		_, err = mod1.ExportedFunction(`testLocalDel2`).Call(ctx, uint64(1))
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		stack, err = mod2.ExportedFunction(`testLocalMin2`).Call(ctx)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		if stack[0] != uint64(10) {
+			t.Fatalf("expected %d, got %d", 10, stack[0])
+		}
+		_, err = mod1.ExportedFunction(`testLocalPut2`).Call(ctx, uint64(5), uint64(6))
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		stack, err = mod2.ExportedFunction(`testLocalMin2`).Call(ctx)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
+		if stack[0] != uint64(5) {
+			t.Fatalf("expected %d, got %d", 5, stack[0])
+		}
+	})
 
 	hostModule.Stop()
 }

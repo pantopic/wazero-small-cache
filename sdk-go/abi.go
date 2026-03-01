@@ -43,5 +43,9 @@ func get()
 //export __small_cache_del
 func del()
 
+//go:wasm-module pantopic/wazero-small-cache
+//export __small_cache_min
+func min()
+
 // Fix for lint rule `unusedfunc`
 var _ = __small_cache
