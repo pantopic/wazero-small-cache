@@ -2,7 +2,7 @@ package wazero_small_cache
 
 import (
 	"context"
-	"encoding/base64"
+	"encoding/hex"
 	"log"
 	"sync"
 
@@ -52,7 +52,11 @@ func (h *hostModule) Name() string {
 
 func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
 	dst = context.WithValue(dst, ctxKeyMeta, get[*meta](src, ctxKeyMeta))
-	dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
+	if v := src.Value(ctxKeyLocal); v != nil {
+		dst = context.WithValue(dst, ctxKeyLocal, v.(map[uint64]*btree.Map[string, []byte]))
+	} else {
+		dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
+	}
 	return dst
 }
 
@@ -69,7 +73,7 @@ func (h *hostModule) Register(ctx context.Context, r wazero.Runtime) (err error)
 			m.Set(k, v)
 		},
 		"__small_cache_get": func(m *btree.Map[string, []byte], k string) (v []byte) {
-			v, _ = m.Load(k, v)
+			v, _ = m.Get(k)
 			return
 		},
 		"__small_cache_del": func(m *btree.Map[string, []byte], k string) {
@@ -106,7 +110,7 @@ func (h *hostModule) Register(ctx context.Context, r wazero.Runtime) (err error)
 					writeUint32(mod, meta.ptrKeyLen, 0)
 					return
 				}
-				b, err := base64.URLEncoding.DecodeString(k)
+				b, err := hex.DecodeString(k)
 				if err != nil {
 					panic("Unable to decode key in min: " + k)
 				}
@@ -161,7 +165,7 @@ func (h *hostModule) getMap(ctx context.Context, mod api.Module, meta *meta) *bt
 
 func getKey(mod api.Module, meta *meta) string {
 	b := read(mod, meta.ptrKey, meta.ptrKeyLen, meta.ptrKeyCap)
-	return base64.URLEncoding.EncodeToString(b)
+	return hex.EncodeToString(b)
 }
 
 func getVal(mod api.Module, meta *meta) []byte {
