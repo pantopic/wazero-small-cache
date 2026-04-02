@@ -24,7 +24,7 @@ func main() {
     r := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfig())
     wasi_snapshot_preview1.MustInstantiate(ctx, r)
 
-    module := wazero_atomic.New()
+    module := wazero_small_cache.New()
     module.Register(ctx, r)
 
     // ...
