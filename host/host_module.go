@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"log"
 	"sync"
+	// "sync/atomic"
 
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
@@ -38,12 +39,12 @@ type hostModule struct {
 
 type Option func(*hostModule)
 
-func New(opts ...Option) *hostModule {
-	p := &hostModule{}
+func New(opts ...Option) (h *hostModule) {
+	h = &hostModule{}
 	for _, opt := range opts {
-		opt(p)
+		opt(h)
 	}
-	return p
+	return
 }
 
 func (h *hostModule) Name() string {
@@ -52,11 +53,7 @@ func (h *hostModule) Name() string {
 
 func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
 	dst = context.WithValue(dst, ctxKeyMeta, get[*meta](src, ctxKeyMeta))
-	if v := src.Value(ctxKeyLocal); v != nil {
-		dst = context.WithValue(dst, ctxKeyLocal, v.(map[uint64]*btree.Map[string, []byte]))
-	} else {
-		dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
-	}
+	dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
 	return dst
 }
 
