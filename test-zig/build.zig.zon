@@ -1,0 +1,5 @@
+.{ .name = .test_zig, .version = "0.1.0", .dependencies = .{
+    .small_cache = .{
+        .path = "../sdk-zig",
+    },
+}, .paths = .{"src"}, .fingerprint = 0xb8b3cc460378bf37 }
