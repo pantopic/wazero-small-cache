@@ -37,7 +37,7 @@ pub const Local = struct {
     id: u64,
 
     // Get method
-    pub fn get(self: *Local, k: []u8) []u8 {
+    pub fn get(self: Local, k: []const u8) []u8 {
         id = self.id;
         key_len = @intCast(k.len);
 
@@ -51,7 +51,7 @@ pub const Local = struct {
     }
 
     // Put method
-    pub fn put(self: *Local, k: []u8, v: []u8) void {
+    pub fn put(self: Local, k: []const u8, v: []const u8) void {
         id = self.id;
         key_len = @intCast(k.len);
         val_len = @intCast(v.len);
@@ -68,7 +68,7 @@ pub const Local = struct {
     }
 
     // Del method
-    pub fn del(self: *Local, k: []u8) void {
+    pub fn del(self: Local, k: []const u8) void {
         id = self.id;
         key_len = @intCast(k.len);
 
@@ -80,7 +80,7 @@ pub const Local = struct {
     }
 
     // Min method
-    pub fn min(self: *Local) []u8 {
+    pub fn min(self: Local) []u8 {
         id = self.id;
         __small_cache_min();
         return key[0..key_len];
@@ -88,6 +88,6 @@ pub const Local = struct {
 };
 
 // Constructor for Local
-pub fn newLocal(local_id: u64) *Local {
-    return &Local{ .id = local_id };
+pub fn newLocal(local_id: u64) Local {
+    return Local{ .id = local_id };
 }

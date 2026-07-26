@@ -7,8 +7,8 @@ const small_cache = @import("small_cache");
 const SMALL_CACHE_ID_TEST_1 = 0;
 const SMALL_CACHE_ID_TEST_2 = 1;
 
-var testLocalCache1: *small_cache.Local = undefined;
-var testLocalCache2: *small_cache.Local = undefined;
+var testLocalCache1: small_cache.Local = undefined;
+var testLocalCache2: small_cache.Local = undefined;
 
 // Initialize the caches
 fn init() void {
@@ -58,7 +58,7 @@ export fn testLocalGet(k: u64) u64 {
         return 0;
     }
 
-    return bytesToU64(@as([8]u8, @bitCast(result)));
+    return bytesToU64(result[0..8].*);
 }
 
 export fn testLocalDel(k: u64) void {
@@ -74,7 +74,7 @@ export fn testLocalMin() u64 {
         return 0;
     }
 
-    return bytesToU64(@as([8]u8, @bitCast(result)));
+    return bytesToU64(result[0..8].*);
 }
 
 export fn testLocalPut2(k: u64, v: u64) void {
@@ -92,7 +92,7 @@ export fn testLocalGet2(k: u64) u64 {
         return 0;
     }
 
-    return bytesToU64(@as([8]u8, @bitCast(result)));
+    return bytesToU64(result[0..8].*);
 }
 
 export fn testLocalDel2(k: u64) void {
@@ -108,7 +108,7 @@ export fn testLocalMin2() u64 {
         return 0;
     }
 
-    return bytesToU64(@as([8]u8, @bitCast(result)));
+    return bytesToU64(result[0..8].*);
 }
 
 // Entry point
