@@ -21,6 +21,13 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
+    // WASI executables only export `_start` by default; rdynamic exports
+    // all `export fn` symbols (__small_cache, testLocal*, ...) as well.
+    exe.rdynamic = true;
+    // Build a WASI reactor, not a command: a command's _start calls
+    // proc_exit after main, which closes the module instance in the host
+    // and makes all subsequent exported-function calls fail.
+    exe.wasi_exec_model = .reactor;
     const small_cache = b.addModule("small_cache", .{
         .root_source_file = b.path("../sdk-zig/src/lib.zig"),
     });

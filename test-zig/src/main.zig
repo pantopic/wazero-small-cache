@@ -7,14 +7,11 @@ const small_cache = @import("small_cache");
 const SMALL_CACHE_ID_TEST_1 = 0;
 const SMALL_CACHE_ID_TEST_2 = 1;
 
-var testLocalCache1: small_cache.Local = undefined;
-var testLocalCache2: small_cache.Local = undefined;
+var testLocalCache1 = small_cache.newLocal(SMALL_CACHE_ID_TEST_1);
+var testLocalCache2 = small_cache.newLocal(SMALL_CACHE_ID_TEST_2);
 
-// Initialize the caches
-fn init() void {
-    testLocalCache1 = small_cache.newLocal(SMALL_CACHE_ID_TEST_1);
-    testLocalCache2 = small_cache.newLocal(SMALL_CACHE_ID_TEST_2);
-}
+// WASI reactor entry point; all state is initialized at comptime.
+export fn _initialize() void {}
 
 // Helper function to convert u64 to byte array (Little Endian)
 fn u64ToBytes(value: u64) [8]u8 {
@@ -109,9 +106,4 @@ export fn testLocalMin2() u64 {
     }
 
     return bytesToU64(result[0..8].*);
-}
-
-// Entry point
-pub fn main() void {
-    init();
 }

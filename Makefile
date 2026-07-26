@@ -4,6 +4,7 @@ wasm:
 
 wasm-zig:
 	@cd test-zig && zig build
+	@cp test-zig/zig-out/bin/test_zig.wasm host/test_zig.wasm
 
 test:
 	@cd host && go test . -v
