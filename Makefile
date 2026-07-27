@@ -2,6 +2,10 @@
 wasm:
 	@cd test && tinygo build -buildmode=wasi-legacy -target=wasi -opt=2 -gc=leaking -scheduler=none -o ../host/test.wasm module.go
 
+wasm-zig:
+	@cd test-zig && zig build
+	@cp test-zig/zig-out/bin/test_zig.wasm host/test_zig.wasm
+
 test:
 	@cd host && go test . -v
 
