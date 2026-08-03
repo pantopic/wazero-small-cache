@@ -51,12 +51,6 @@ func (h *hostModule) Name() string {
 	return Name
 }
 
-func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
-	dst = context.WithValue(dst, ctxKeyMeta, get[*meta](src, ctxKeyMeta))
-	dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
-	return dst
-}
-
 func (h *hostModule) Stop() {}
 
 // Register instantiates the host module, making it available to all module instances in this runtime
@@ -142,6 +136,18 @@ func (h *hostModule) InitContext(ctx context.Context, m api.Module) (context.Con
 		*v = readUint32(m, ptr+uint32(4*i))
 	}
 	return context.WithValue(ctx, ctxKeyMeta, meta), nil
+}
+
+func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
+	if v := src.Value(ctxKeyMeta); v != nil {
+		dst = context.WithValue(dst, ctxKeyMeta, v.(*meta))
+		if v := src.Value(ctxKeyLocal); v != nil {
+			dst = context.WithValue(dst, ctxKeyLocal, v.(map[uint64]*btree.Map[string, []byte]))
+		} else {
+			dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
+		}
+	}
+	return dst
 }
 
 func (h *hostModule) getMap(ctx context.Context, mod api.Module, meta *meta) *btree.Map[string, []byte] {
