@@ -18,6 +18,7 @@ const Name = "pantopic/wazero-small-cache"
 var (
 	ctxKeyMeta  = Name + `/meta`
 	ctxKeyLocal = Name + `/local`
+	ctxKeyMutex = Name + `/mutex`
 )
 
 type meta struct {
@@ -60,43 +61,51 @@ func (h *hostModule) Register(ctx context.Context, r wazero.Runtime) (err error)
 		builder = builder.NewFunctionBuilder().WithGoModuleFunction(api.GoModuleFunc(fn), nil, nil).Export(name)
 	}
 	for name, fn := range map[string]any{
-		"__small_cache_put": func(m *btree.Map[string, []byte], k string, v []byte) {
+		"__small_cache_put": func(mu *sync.RWMutex, m *btree.Map[string, []byte], k string, v []byte) {
+			mu.Lock()
+			defer mu.Unlock()
 			m.Set(k, v)
 		},
-		"__small_cache_get": func(m *btree.Map[string, []byte], k string) (v []byte) {
+		"__small_cache_get": func(mu *sync.RWMutex, m *btree.Map[string, []byte], k string) (v []byte) {
+			mu.RLock()
+			defer mu.RUnlock()
 			v, _ = m.Get(k)
 			return
 		},
-		"__small_cache_del": func(m *btree.Map[string, []byte], k string) {
+		"__small_cache_del": func(mu *sync.RWMutex, m *btree.Map[string, []byte], k string) {
+			mu.Lock()
+			defer mu.Unlock()
 			m.Delete(k)
 		},
-		"__small_cache_min": func(m *btree.Map[string, []byte]) (k string) {
+		"__small_cache_min": func(mu *sync.RWMutex, m *btree.Map[string, []byte]) (k string) {
+			mu.RLock()
+			defer mu.RUnlock()
 			k, _, _ = m.Min()
 			return
 		},
 	} {
 		switch fn := fn.(type) {
-		case func(m *btree.Map[string, []byte], k string, v []byte):
+		case func(mu *sync.RWMutex, m *btree.Map[string, []byte], k string, v []byte):
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
-				fn(h.getMap(ctx, mod, meta), getKey(mod, meta), getVal(mod, meta))
+				fn(get[*sync.RWMutex](ctx, ctxKeyMutex), h.getMap(ctx, mod, meta), getKey(mod, meta), getVal(mod, meta))
 			})
-		case func(m *btree.Map[string, []byte], k string) (v []byte):
+		case func(mu *sync.RWMutex, m *btree.Map[string, []byte], k string) (v []byte):
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
-				b := fn(h.getMap(ctx, mod, meta), getKey(mod, meta))
+				b := fn(get[*sync.RWMutex](ctx, ctxKeyMutex), h.getMap(ctx, mod, meta), getKey(mod, meta))
 				copy(valBuf(mod, meta)[:len(b)], b)
 				writeUint32(mod, meta.ptrValLen, uint32(len(b)))
 			})
-		case func(m *btree.Map[string, []byte], k string):
+		case func(mu *sync.RWMutex, m *btree.Map[string, []byte], k string):
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
-				fn(h.getMap(ctx, mod, meta), getKey(mod, meta))
+				fn(get[*sync.RWMutex](ctx, ctxKeyMutex), h.getMap(ctx, mod, meta), getKey(mod, meta))
 			})
-		case func(m *btree.Map[string, []byte]) string:
+		case func(mu *sync.RWMutex, m *btree.Map[string, []byte]) string:
 			register(name, func(ctx context.Context, mod api.Module, stack []uint64) {
 				meta := get[*meta](ctx, ctxKeyMeta)
-				k := fn(h.getMap(ctx, mod, meta))
+				k := fn(get[*sync.RWMutex](ctx, ctxKeyMutex), h.getMap(ctx, mod, meta))
 				if len(k) == 0 {
 					writeUint32(mod, meta.ptrKeyLen, 0)
 					return
@@ -145,6 +154,11 @@ func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
 			dst = context.WithValue(dst, ctxKeyLocal, v.(map[uint64]*btree.Map[string, []byte]))
 		} else {
 			dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
+		}
+		if v := src.Value(ctxKeyMutex); v != nil {
+			dst = context.WithValue(dst, ctxKeyMutex, v.(*sync.RWMutex))
+		} else {
+			dst = context.WithValue(dst, ctxKeyMutex, &sync.RWMutex{})
 		}
 	}
 	return dst
