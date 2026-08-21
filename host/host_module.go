@@ -150,13 +150,13 @@ func (h *hostModule) InitContext(ctx context.Context, m api.Module) (context.Con
 func (h *hostModule) ContextCopy(dst, src context.Context) context.Context {
 	if v := src.Value(ctxKeyMeta); v != nil {
 		dst = context.WithValue(dst, ctxKeyMeta, v.(*meta))
-		if v := src.Value(ctxKeyLocal); v != nil {
-			dst = context.WithValue(dst, ctxKeyLocal, v.(map[uint64]*btree.Map[string, []byte]))
-		} else {
-			dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
-		}
 		if v := src.Value(ctxKeyMutex); v != nil {
 			dst = context.WithValue(dst, ctxKeyMutex, v.(*sync.RWMutex))
+			if v := src.Value(ctxKeyLocal); v != nil {
+				dst = context.WithValue(dst, ctxKeyLocal, v.(map[uint64]*btree.Map[string, []byte]))
+			} else {
+				dst = context.WithValue(dst, ctxKeyLocal, make(map[uint64]*btree.Map[string, []byte]))
+			}
 		} else {
 			dst = context.WithValue(dst, ctxKeyMutex, &sync.RWMutex{})
 		}
