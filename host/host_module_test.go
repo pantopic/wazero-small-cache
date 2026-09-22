@@ -57,6 +57,7 @@ func testModule(t *testing.T, wasmBytes []byte) {
 	}
 
 	ctx = hostModule.ContextCopy(ctx, ctx)
+	ctx = hostModule.ContextCopy(ctx, ctx)
 
 	t.Run(`put`, func(t *testing.T) {
 		_, err := mod1.ExportedFunction(`testLocalPut`).Call(ctx, uint64(1), uint64(2))
