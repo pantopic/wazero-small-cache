@@ -6,13 +6,6 @@ pub fn build(b: *std.Build) void {
     });
     const optimize = b.standardOptimizeOption(.{});
 
-    // Add the small_cache library as a dependency - reference the SDK directory directly
-    // const small_cache = b.dependency("small_cache", .{
-    //     .path = "../sdk-zig",
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
-
     const exe = b.addExecutable(.{
         .name = "test_zig",
         .root_module = b.createModule(.{
@@ -21,19 +14,11 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
-    // WASI executables only export `_start` by default; rdynamic exports
-    // all `export fn` symbols (__small_cache, testLocal*, ...) as well.
     exe.rdynamic = true;
-    // Build a WASI reactor, not a command: a command's _start calls
-    // proc_exit after main, which closes the module instance in the host
-    // and makes all subsequent exported-function calls fail.
     exe.wasi_exec_model = .reactor;
     const small_cache = b.addModule("small_cache", .{
         .root_source_file = b.path("../sdk-zig/src/lib.zig"),
     });
-
-    // Import the small_cache library
-    // exe.root_module.addImport("small_cache", small_cache.module("small_cache"));
     exe.root_module.addImport("small_cache", small_cache);
 
     b.installArtifact(exe);
@@ -51,9 +36,6 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         }),
     });
-
-    // Add the small_cache dependency to the test as well
-    // lib_unit_tests.root_module.addImport("small_cache", small_cache.module("small_cache"));
     lib_unit_tests.root_module.addImport("small_cache", small_cache);
 
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
