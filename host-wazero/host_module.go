@@ -13,7 +13,7 @@ import (
 )
 
 // Name is the name of this host module.
-const Name = "pantopic/wazero-small-cache"
+const Name = "pantopic/ext-small-cache"
 
 var (
 	ctxKeyMeta  = Name + `/meta`
