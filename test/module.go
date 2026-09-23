@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 
-	"github.com/pantopic/wazero-small-cache/sdk-go"
+	"github.com/pantopic/ext-small-cache/sdk-go"
 )
 
 const (

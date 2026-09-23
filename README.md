@@ -1,13 +1,13 @@
-# Wazero Small Cache
+# Small Cache
 
 A [wazero](https://pkg.go.dev/github.com/tetratelabs/wazero) host module, ABI and guest SDK providing a small cache 
 suitable for sharing data between concurrent WASI modules.
 
 ## Host Module
 
-[![Go Reference](https://godoc.org/github.com/pantopic/wazero-small-cache/host?status.svg)](https://godoc.org/github.com/pantopic/wazero-small-cache/host)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pantopic/wazero-small-cache/host)](https://goreportcard.com/report/github.com/pantopic/wazero-small-cache/host)
-[![Go Coverage](https://github.com/pantopic/wazero-small-cache/wiki/host/coverage.svg)](https://raw.githack.com/wiki/pantopic/wazero-small-cache/host/coverage.html)
+[![Go Reference](https://godoc.org/github.com/pantopic/ext-small-cache/host-wazero?status.svg)](https://godoc.org/github.com/pantopic/ext-small-cache/host-wazero)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pantopic/ext-small-cache/host-wazero)](https://goreportcard.com/report/github.com/pantopic/ext-small-cache/host-wazero)
+[![Go Coverage](https://github.com/pantopic/ext-small-cache/wiki/host/coverage.svg)](https://raw.githack.com/wiki/pantopic/ext-small-cache/host-wazero/coverage.html)
 
 First register the host module with the runtime
 
@@ -16,7 +16,7 @@ import (
     "github.com/tetratelabs/wazero"
     "github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 
-    "github.com/pantopic/wazero-small-cache/host"
+    "github.com/pantopic/ext-small-cache/host-wazero"
 )
 
 func main() {
@@ -33,8 +33,8 @@ func main() {
 
 ## Guest SDK (Go)
 
-[![Go Reference](https://godoc.org/github.com/pantopic/wazero-small-cache/sdk-go?status.svg)](https://godoc.org/github.com/pantopic/wazero-small-cache/sdk-go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/pantopic/wazero-small-cache/sdk-go)](https://goreportcard.com/report/github.com/pantopic/wazero-small-cache/sdk-go)
+[![Go Reference](https://godoc.org/github.com/pantopic/ext-small-cache/sdk-go?status.svg)](https://godoc.org/github.com/pantopic/ext-small-cache/sdk-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pantopic/ext-small-cache/sdk-go)](https://goreportcard.com/report/github.com/pantopic/ext-small-cache/sdk-go)
 
 Then you can import the guest SDK into your WASI module to send messages from one WASI module to another.
 
@@ -42,7 +42,7 @@ Then you can import the guest SDK into your WASI module to send messages from on
 package main
 
 import (
-    "github.com/pantopic/wazero-small-cache/sdk-go"
+    "github.com/pantopic/ext-small-cache/sdk-go"
 )
 
 const (

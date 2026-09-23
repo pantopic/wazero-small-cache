@@ -31,19 +31,19 @@ func __small_cache() (res uint32) {
 	return uint32(uintptr(unsafe.Pointer(&meta[0])))
 }
 
-//go:wasm-module pantopic/wazero-small-cache
+//go:wasm-module pantopic/ext-small-cache
 //export __small_cache_put
 func put()
 
-//go:wasm-module pantopic/wazero-small-cache
+//go:wasm-module pantopic/ext-small-cache
 //export __small_cache_get
 func get()
 
-//go:wasm-module pantopic/wazero-small-cache
+//go:wasm-module pantopic/ext-small-cache
 //export __small_cache_del
 func del()
 
-//go:wasm-module pantopic/wazero-small-cache
+//go:wasm-module pantopic/ext-small-cache
 //export __small_cache_min
 func min()
 

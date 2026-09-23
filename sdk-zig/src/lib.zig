@@ -27,10 +27,10 @@ export fn __small_cache() u32 {
 }
 
 // WASM module exports for cache operations
-extern "pantopic/wazero-small-cache" fn __small_cache_put() void;
-extern "pantopic/wazero-small-cache" fn __small_cache_get() void;
-extern "pantopic/wazero-small-cache" fn __small_cache_del() void;
-extern "pantopic/wazero-small-cache" fn __small_cache_min() void;
+extern "pantopic/ext-small-cache" fn __small_cache_put() void;
+extern "pantopic/ext-small-cache" fn __small_cache_get() void;
+extern "pantopic/ext-small-cache" fn __small_cache_del() void;
+extern "pantopic/ext-small-cache" fn __small_cache_min() void;
 
 // Local cache struct
 pub const Local = struct {
